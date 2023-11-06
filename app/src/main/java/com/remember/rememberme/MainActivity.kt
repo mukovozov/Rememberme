@@ -3,6 +3,7 @@
 package com.remember.rememberme
 
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.Column
@@ -25,8 +26,11 @@ import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavDestination
 import androidx.navigation.NavDestination.Companion.hierarchy
+import com.remember.rememberme.core.AppDatabase
+import com.remember.rememberme.feature.card.database.dao.CardDao
 import com.remember.rememberme.navigation.RmNavHost
 import com.remember.rememberme.navigation.TopLevelDestination
 import com.remember.rememberme.ui.RmAppState
@@ -34,11 +38,23 @@ import com.remember.rememberme.ui.components.RmNavigationBar
 import com.remember.rememberme.ui.components.RmNavigationBarItem
 import com.remember.rememberme.ui.rememberRmAppState
 import com.remember.rememberme.ui.theme.RemembermeTheme
+import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 @OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+
+    @Inject
+    lateinit var database: AppDatabase
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        lifecycleScope.launch {
+            val result = database.cardDao().getAll()
+            Log.d("TAG", "onCreate: $result")
+        }
 
         setContent {
             RemembermeTheme {
