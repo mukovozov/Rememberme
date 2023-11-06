@@ -30,7 +30,9 @@ import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavDestination
 import androidx.navigation.NavDestination.Companion.hierarchy
 import com.remember.rememberme.core.AppDatabase
+import com.remember.rememberme.feature.card.data.SetRepository
 import com.remember.rememberme.feature.card.database.dao.CardDao
+import com.remember.rememberme.feature.card.ui.navigation.navigateToCards
 import com.remember.rememberme.navigation.RmNavHost
 import com.remember.rememberme.navigation.TopLevelDestination
 import com.remember.rememberme.ui.RmAppState
@@ -42,17 +44,19 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+private const val TAG = "MainActivity"
+
 @OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
     @Inject
-    lateinit var database: AppDatabase
+    lateinit var database: SetRepository
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         lifecycleScope.launch {
-            val result = database.cardDao().getAll()
+            val result = database.getSets()
             Log.d("TAG", "onCreate: $result")
         }
 
@@ -74,8 +78,15 @@ fun RmApp(
             RmBottomBar(
                 // TODO: get from viewmodel
                 destinations = appState.topLevelDestinations,
-                onNavigateToDestination = {
-                    // TODO: pass to viewmodel
+                onNavigateToDestination = { destination ->
+                    when (destination) {
+                        TopLevelDestination.CARDS -> {
+                            appState.navController.navigateToCards()
+                        }
+                        else -> {
+                            Log.d(TAG, "RmApp: $destination")
+                        }
+                    }
                 },
                 // TODO: get from viewModel
                 currentDestination = appState.currentDestination

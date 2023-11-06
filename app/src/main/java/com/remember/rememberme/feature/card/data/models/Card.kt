@@ -1,4 +1,4 @@
-package com.remember.rememberme.feature.card
+package com.remember.rememberme.feature.card.data.models
 
 data class Card(
     val text: String,

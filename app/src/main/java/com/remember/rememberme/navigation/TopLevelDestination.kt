@@ -13,7 +13,7 @@ enum class TopLevelDestination(
     val selectedIcon: ImageVector,
     val icon: ImageVector,
 ) {
-    MAIN(
+    CARDS(
         selectedIcon = Icons.Rounded.Home,
         icon = Icons.Outlined.Home,
     ),

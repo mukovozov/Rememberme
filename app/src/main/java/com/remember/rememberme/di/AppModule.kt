@@ -5,9 +5,14 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.sqlite.db.SupportSQLiteDatabase
 import com.remember.rememberme.core.AppDatabase
+import com.remember.rememberme.core.coroutines.DispatchersProvider
+import com.remember.rememberme.core.coroutines.DispatchersProviderImpl
+import com.remember.rememberme.feature.card.data.SetRepository
+import com.remember.rememberme.feature.card.data.SetRepositoryImpl
 import com.remember.rememberme.feature.card.database.dao.CardDao
 import com.remember.rememberme.feature.card.database.dao.SetDao
 import com.remember.rememberme.feature.card.database.test.SetCallback
+import dagger.Binds
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -22,6 +27,14 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 interface AppModule {
+
+    @Binds
+    @Singleton
+    fun provideDispatchersProvider(dispatchersProviderImpl: DispatchersProviderImpl): DispatchersProvider
+
+    @Binds
+    @Singleton
+    fun provideSetRepository(setRepositoryImpl: SetRepositoryImpl): SetRepository
 
     companion object {
         @Provides
