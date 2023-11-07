@@ -7,11 +7,13 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 import com.remember.rememberme.core.AppDatabase
 import com.remember.rememberme.core.coroutines.DispatchersProvider
 import com.remember.rememberme.core.coroutines.DispatchersProviderImpl
+import com.remember.rememberme.feature.card.data.CardsRepository
+import com.remember.rememberme.feature.card.data.CardsRepositoryImpl
 import com.remember.rememberme.feature.card.data.SetRepository
 import com.remember.rememberme.feature.card.data.SetRepositoryImpl
-import com.remember.rememberme.feature.card.database.dao.CardDao
-import com.remember.rememberme.feature.card.database.dao.SetDao
-import com.remember.rememberme.feature.card.database.test.SetCallback
+import com.remember.rememberme.feature.card.data.database.dao.CardDao
+import com.remember.rememberme.feature.card.data.database.dao.SetDao
+import com.remember.rememberme.feature.card.data.database.test.SetCallback
 import dagger.Binds
 import dagger.Module
 import dagger.Provides
@@ -35,6 +37,10 @@ interface AppModule {
     @Binds
     @Singleton
     fun provideSetRepository(setRepositoryImpl: SetRepositoryImpl): SetRepository
+
+    @Binds
+    @Singleton
+    fun provideCardsRepository(cardsRepositoryImpl: CardsRepositoryImpl): CardsRepository
 
     companion object {
         @Provides

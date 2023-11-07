@@ -1,22 +1,43 @@
 package com.remember.rememberme.feature.card.ui.navigation
 
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavOptions
+import androidx.navigation.NavType
 import androidx.navigation.compose.composable
-import com.remember.rememberme.feature.card.ui.CardScreenRoute
+import androidx.navigation.navArgument
+import com.remember.rememberme.feature.card.ui.cards.CardsScreenRoute
+import com.remember.rememberme.feature.card.ui.sets.SetsScreenRoute
 
-const val cardsNavigationRoute = "cards_route"
+const val setsNavigationRoute = "sets_route"
 
-fun NavController.navigateToCards(navOptions: NavOptions? = null) {
-    this.navigate(cardsNavigationRoute, navOptions)
+private const val cardsNavigationRoute = "cards_route"
+
+fun NavController.navigateToSets(navOptions: NavOptions? = null) {
+    this.navigate(setsNavigationRoute, navOptions)
 }
 
+fun NavGraphBuilder.setsScreen(onSetSelected: (setId: Int) -> Unit) {
+    composable(
+        route = setsNavigationRoute,
+    ) {
+        SetsScreenRoute(onSetSelected)
+    }
+}
+
+const val SET_ID_PARAMETER = "set_id_parameter"
+fun NavController.navigateToCards(setId: Int) {
+    navigate("$cardsNavigationRoute/$setId")
+}
 fun NavGraphBuilder.cardsScreen() {
     composable(
-        route = cardsNavigationRoute,
+        route = "$cardsNavigationRoute/{$SET_ID_PARAMETER}",
+        arguments = listOf(
+            navArgument(SET_ID_PARAMETER) {
+                type = NavType.IntType
+            }
+        )
     ) {
-        CardScreenRoute()
+        CardsScreenRoute()
     }
 }

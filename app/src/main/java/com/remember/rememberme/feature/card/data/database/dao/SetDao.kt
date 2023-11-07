@@ -1,11 +1,12 @@
-package com.remember.rememberme.feature.card.database.dao
+package com.remember.rememberme.feature.card.data.database.dao
 
 import androidx.room.Dao
 import androidx.room.Query
 import androidx.room.Transaction
 import com.remember.rememberme.core.database.BaseDao
-import com.remember.rememberme.feature.card.database.SetEntity
-import com.remember.rememberme.feature.card.database.SetWithCards
+import com.remember.rememberme.feature.card.data.database.SetEntity
+import com.remember.rememberme.feature.card.data.database.SetWithCards
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface SetDao : BaseDao<SetEntity> {
@@ -14,5 +15,5 @@ interface SetDao : BaseDao<SetEntity> {
 
     @Transaction
     @Query("SELECT * FROM SetEntity")
-    suspend fun getSetsWithCards(): List<SetWithCards>
+    fun getSetsWithCards(): Flow<List<SetWithCards>>
 }

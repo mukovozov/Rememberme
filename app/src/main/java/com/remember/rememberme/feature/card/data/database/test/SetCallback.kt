@@ -1,11 +1,11 @@
-package com.remember.rememberme.feature.card.database.test
+package com.remember.rememberme.feature.card.data.database.test
 
 import androidx.room.RoomDatabase
 import androidx.sqlite.db.SupportSQLiteDatabase
-import com.remember.rememberme.feature.card.database.CardEntity
-import com.remember.rememberme.feature.card.database.SetEntity
-import com.remember.rememberme.feature.card.database.dao.CardDao
-import com.remember.rememberme.feature.card.database.dao.SetDao
+import com.remember.rememberme.feature.card.data.database.CardEntity
+import com.remember.rememberme.feature.card.data.database.SetEntity
+import com.remember.rememberme.feature.card.data.database.dao.CardDao
+import com.remember.rememberme.feature.card.data.database.dao.SetDao
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch

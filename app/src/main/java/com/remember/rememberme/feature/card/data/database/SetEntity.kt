@@ -1,4 +1,4 @@
-package com.remember.rememberme.feature.card.database
+package com.remember.rememberme.feature.card.data.database
 
 import androidx.room.ColumnInfo
 import androidx.room.Embedded

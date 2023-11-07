@@ -29,10 +29,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavDestination
 import androidx.navigation.NavDestination.Companion.hierarchy
-import com.remember.rememberme.core.AppDatabase
 import com.remember.rememberme.feature.card.data.SetRepository
-import com.remember.rememberme.feature.card.database.dao.CardDao
-import com.remember.rememberme.feature.card.ui.navigation.navigateToCards
 import com.remember.rememberme.navigation.RmNavHost
 import com.remember.rememberme.navigation.TopLevelDestination
 import com.remember.rememberme.ui.RmAppState
@@ -74,24 +71,24 @@ fun RmApp(
     appState: RmAppState = rememberRmAppState(windowSizeClass = windowSizeClass)
 ) {
     Scaffold(
-        bottomBar = {
-            RmBottomBar(
-                // TODO: get from viewmodel
-                destinations = appState.topLevelDestinations,
-                onNavigateToDestination = { destination ->
-                    when (destination) {
-                        TopLevelDestination.CARDS -> {
-                            appState.navController.navigateToCards()
-                        }
-                        else -> {
-                            Log.d(TAG, "RmApp: $destination")
-                        }
-                    }
-                },
-                // TODO: get from viewModel
-                currentDestination = appState.currentDestination
-            )
-        }
+//        bottomBar = {
+//            RmBottomBar(
+//                // TODO: get from viewmodel
+//                destinations = appState.topLevelDestinations,
+//                onNavigateToDestination = { destination ->
+//                    when (destination) {
+//                        TopLevelDestination.CARDS -> {
+//                            appState.navController.navigateToCards()
+//                        }
+//                        else -> {
+//                            Log.d(TAG, "RmApp: $destination")
+//                        }
+//                    }
+//                },
+//                // TODO: get from viewModel
+//                currentDestination = appState.currentDestination
+//            )
+//        }
     ) { padding ->
         Row(
             Modifier
