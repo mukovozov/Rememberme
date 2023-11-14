@@ -3,7 +3,9 @@ package com.remember.rememberme.feature.card.ui.sets
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -28,6 +30,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.remember.rememberme.feature.card.data.models.CardSet
 import com.remember.rememberme.ui.components.Header
+import com.remember.rememberme.ui.components.RememberCard
 import com.remember.rememberme.ui.components.SubHeader
 
 @Composable
@@ -75,16 +78,9 @@ fun Set(
     set: CardSet,
     onSetSelected: (setId: Int) -> Unit,
 ) {
-    Column(
-        modifier = Modifier
-            .height(150.dp)
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(18.dp))
-            .background(MaterialTheme.colorScheme.primary)
-            .clickable {
-                onSetSelected.invoke(set.id)
-            }
-    ) {
+    RememberCard(modifier = Modifier.clickable {
+        onSetSelected.invoke(set.id)
+    }) {
         Text(
             modifier = Modifier
                 .padding(top = 16.dp)
@@ -121,5 +117,5 @@ fun Set(
 @Preview
 @Composable
 fun SetPreview() {
-    Set(CardSet(1, "Daily Conversation", listOf()), onSetSelected = { _ ->})
+    Set(CardSet(1, "Daily Conversation", listOf()), onSetSelected = { _ -> })
 }

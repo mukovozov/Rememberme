@@ -29,7 +29,7 @@ const val SET_ID_PARAMETER = "set_id_parameter"
 fun NavController.navigateToCards(setId: Int) {
     navigate("$cardsNavigationRoute/$setId")
 }
-fun NavGraphBuilder.cardsScreen() {
+fun NavGraphBuilder.cardsScreen(onBackPressed: () -> Unit) {
     composable(
         route = "$cardsNavigationRoute/{$SET_ID_PARAMETER}",
         arguments = listOf(
@@ -38,6 +38,6 @@ fun NavGraphBuilder.cardsScreen() {
             }
         )
     ) {
-        CardsScreenRoute()
+        CardsScreenRoute(onBackPressed)
     }
 }

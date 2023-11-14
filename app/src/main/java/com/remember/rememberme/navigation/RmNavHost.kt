@@ -27,6 +27,10 @@ fun RmNavHost(
             }
         )
 
-        cardsScreen()
+        cardsScreen(
+            onBackPressed = {
+                navController.popBackStack()
+            }
+        )
     }
 }

@@ -16,4 +16,8 @@ interface SetDao : BaseDao<SetEntity> {
     @Transaction
     @Query("SELECT * FROM SetEntity")
     fun getSetsWithCards(): Flow<List<SetWithCards>>
+
+    @Transaction
+    @Query("SELECT * FROM SetEntity WHERE setId=:setId")
+    fun getSedWithCardsById(setId: Int): Flow<SetWithCards?>
 }

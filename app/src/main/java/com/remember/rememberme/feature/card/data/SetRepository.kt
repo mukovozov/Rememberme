@@ -13,6 +13,8 @@ import javax.inject.Inject
 
 interface SetRepository {
     fun getSets(): Flow<List<CardSet>>
+
+    fun getSetById(setId: Int): Flow<CardSet?>
 }
 
 class SetRepositoryImpl @Inject constructor(
@@ -23,5 +25,10 @@ class SetRepositoryImpl @Inject constructor(
             .map { list ->
                 list.map(SetWithCards::asExternalModel)
             }
+    }
+
+    override fun getSetById(setId: Int): Flow<CardSet?> {
+        return setDao.getSedWithCardsById(setId)
+            .map {  it?.asExternalModel() }
     }
 }

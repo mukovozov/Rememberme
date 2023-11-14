@@ -1,26 +1,227 @@
 package com.remember.rememberme.feature.card.ui.cards
 
+import android.app.Activity
+import android.app.Activity.RESULT_OK
+import android.content.Intent
+import android.speech.RecognizerIntent
+import android.util.Log
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.IntentSenderRequest
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material3.Button
+import androidx.compose.material3.Icon
+import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.remember.rememberme.R
+import com.remember.rememberme.feature.card.data.models.CardSet
 import com.remember.rememberme.ui.components.Header
+import com.remember.rememberme.ui.components.RememberCard
+import com.remember.rememberme.ui.components.SubHeader
 
 @Composable
 fun CardsScreenRoute(
-    cardsViewModel: CardsViewModel = hiltViewModel(),
+    onBackButtonPressed: () -> Unit,
+    viewModel: CardsViewModel = hiltViewModel(),
 ) {
-    val cardsUiState by cardsViewModel.cardsUiState.collectAsStateWithLifecycle()
+    val cardsUiState by viewModel.cardsUiState.collectAsStateWithLifecycle()
+    val viewState by viewModel.viewState.collectAsStateWithLifecycle()
+
+    val recognition = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult(),
+        onResult = { activityResult ->
+            if (activityResult.resultCode != RESULT_OK) {
+                return@rememberLauncherForActivityResult
+            }
+
+            activityResult.data?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)?.let {
+                viewModel.onSpeechRecognized(1, it)
+            }
+        })
+
+
     when (val state = cardsUiState) {
         is CardsUiState.Success -> {
-            Column {
-                Text(text = state.cards.size.toString())
-            }
+            val set = state.set ?: return
+
+            CardsScreen(
+                set = set,
+                viewState = viewState,
+                onMicButtonClicked = {
+                    val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
+                        putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
+                        // TODO: get from set
+//                        putExtra(RecognizerIntent.EXTRA_LANGUAGE, "iw-IL")
+                    }
+
+                    recognition.launch(intent)
+                },
+                onBackButtonPressed = {
+                    onBackButtonPressed.invoke()
+                }
+            )
         }
+
         else -> {
             // do nothing for now
         }
+    }
+}
+
+@Composable
+private fun CardsScreen(
+    set: CardSet,
+    viewState: CardsViewState,
+    onBackButtonPressed: () -> Unit,
+    onMicButtonClicked: ((cardId: Int) -> Unit)
+) {
+    val firstCard = set.cards.firstOrNull() ?: return
+
+    var currentCard = remember { 1f }
+
+    Box {
+        Column(
+            modifier = Modifier
+                .padding(16.dp)
+                .fillMaxSize()
+        ) {
+            Icon(
+                imageVector = Icons.Filled.ArrowBack,
+                modifier = Modifier
+                    .size(32.dp)
+                    .clickable { onBackButtonPressed.invoke() },
+                contentDescription = null,
+                tint = Color.White,
+            )
+
+            Header(
+                text = set.name,
+                modifier = Modifier.padding(horizontal = 16.dp)
+            )
+
+            LinearProgressIndicator(
+                progress = currentCard / set.cards.size.toFloat(),
+                modifier = Modifier
+                    .padding(top = 16.dp)
+                    .height(24.dp)
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(32.dp))
+            )
+
+
+            RememberCard(
+                modifier = Modifier.padding(top = 16.dp),
+                height = 250.dp
+            ) {
+                Text(
+                    text = firstCard.text,
+                    fontSize = MaterialTheme.typography.headlineMedium.fontSize,
+                    color = Color.Black,
+                    modifier = Modifier
+                        .padding(top = 32.dp)
+                        .align(Alignment.CenterHorizontally),
+                )
+
+                Text(
+                    text = firstCard.example,
+                    fontSize = MaterialTheme.typography.bodyMedium.fontSize,
+                    color = Color.Black,
+                    modifier = Modifier
+                        .padding(top = 32.dp)
+                        .padding(horizontal = 32.dp)
+                        .align(Alignment.CenterHorizontally)
+                )
+            }
+
+            if (viewState.correctnessPercents != null) {
+                RememberCard(
+                    modifier = Modifier.padding(top = 32.dp),
+                    height = 64.dp
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(16.dp))
+                            .fillMaxSize()
+                    ) {
+                        val (icon, text) = if (viewState.correctnessPercents >= 50) {
+                            Icons.Filled.Check to "Correct! Correctness is ${viewState.correctnessPercents}!"
+                        } else {
+                            Icons.Filled.Close to "Oops! Try once more!"
+                        }
+
+                        Icon(
+                            imageVector = icon,
+                            contentDescription = null,
+                            modifier = Modifier
+                                .padding(start = 8.dp)
+                                .align(Alignment.CenterVertically)
+                        )
+                        Text(
+                            text = text,
+                            modifier = Modifier
+                                .padding(horizontal = 8.dp)
+                                .align(Alignment.CenterVertically)
+                        )
+                    }
+                }
+            }
+        }
+
+        Button(
+            onClick = {
+                onMicButtonClicked.invoke(firstCard.id)
+            }, modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(bottom = 16.dp)
+                .height(64.dp),
+            shape = CircleShape
+        ) {
+            Icon(
+                painter = painterResource(R.drawable.ic_mic),
+                contentDescription = null,
+                modifier = Modifier,
+                tint = Color.Black
+            )
+        }
+    }
+}
+
+@Preview
+@Composable
+fun CardsScreenPreview() {
+    CardsScreen(set = CardSet(1, "Daily Conversation", emptyList()), CardsViewState(), {}) {
+
     }
 }

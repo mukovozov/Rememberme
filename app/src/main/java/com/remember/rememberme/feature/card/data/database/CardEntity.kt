@@ -16,5 +16,5 @@ data class CardEntity(
 )
 
 fun CardEntity.asExternalModel(): Card {
-    return Card(text, translation, example)
+    return Card(cardId, text, translation, example)
 }
