@@ -10,9 +10,12 @@ import com.remember.rememberme.feature.card.data.SetRepository
 import com.remember.rememberme.feature.card.data.models.Card
 import com.remember.rememberme.feature.card.domain.CardsUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
@@ -48,14 +51,29 @@ class CardsViewModel @Inject constructor(
     private val _viewState = MutableStateFlow(CardsViewState())
     val viewState = _viewState.asStateFlow()
 
-    fun onSpeechRecognized(cardId: Int, recognizedResults: List<String>) {
-        val card = cards.find { it.id == cardId }
+    private val _events = MutableSharedFlow<CardsScreenEvents>(extraBufferCapacity = 1)
+    val events = _events.asSharedFlow()
+
+    fun onSpeechRecognized(cardIndex: Int, recognizedResults: List<String>) {
+        val card = cards[cardIndex]
         val result = recognizedResults.joinToString(separator = " ")
 
         card?.let {
             val similarityPercentage = calculateSimilarityPercentage(card.text, result)
 
-            _viewState.update { it.copy(correctnessPercents = similarityPercentage.toInt()) }
+            val isRecognitionSuccessful = similarityPercentage > 50
+
+            _viewState.update {
+                it.copy(
+                    correctnessPercents = similarityPercentage.toInt(),
+                    activeCardIndex = if (isRecognitionSuccessful) it.activeCardIndex + 1 else it.activeCardIndex,
+                    isRecognitionSuccessful = isRecognitionSuccessful
+                )
+            }
+
+            if (isRecognitionSuccessful) {
+                _events.tryEmit(CardsScreenEvents.GoToNextCard)
+            }
 
             Log.d("TAG", "similarityPercentage: $similarityPercentage of ${card.text} and $result")
         }

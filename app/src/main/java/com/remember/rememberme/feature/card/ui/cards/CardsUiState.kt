@@ -4,7 +4,9 @@ import com.remember.rememberme.feature.card.data.models.Card
 import com.remember.rememberme.feature.card.data.models.CardSet
 
 data class CardsViewState(
+    val activeCardIndex: Int = 0,
     val correctnessPercents: Int? = null,
+    val isRecognitionSuccessful: Boolean = false,
 )
 
 sealed interface CardsUiState {
