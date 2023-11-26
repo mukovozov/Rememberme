@@ -7,6 +7,9 @@ data class CardsViewState(
     val activeCardIndex: Int = 0,
     val correctnessPercents: Int? = null,
     val isRecognitionSuccessful: Boolean = false,
+    val score: Int = 0,
+    val isInputDialogVisible: Boolean = false,
+//    val currentInput: String = ""
 )
 
 sealed interface CardsUiState {

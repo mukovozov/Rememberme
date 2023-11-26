@@ -1,4 +1,4 @@
-@file:OptIn(ExperimentalFoundationApi::class)
+@file:OptIn(ExperimentalFoundationApi::class, ExperimentalComposeUiApi::class)
 
 package com.remember.rememberme.feature.card.ui.cards
 
@@ -7,17 +7,23 @@ import android.content.Intent
 import android.speech.RecognizerIntent
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.DrawableRes
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.snapping.rememberSnapFlingBehavior
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -26,25 +32,37 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Close
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonColors
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
@@ -53,8 +71,11 @@ import androidx.lifecycle.repeatOnLifecycle
 import com.remember.rememberme.R
 import com.remember.rememberme.feature.card.data.models.CardSet
 import com.remember.rememberme.ui.components.Header
+import com.remember.rememberme.ui.components.InputAlertDialog
 import com.remember.rememberme.ui.components.RememberCard
+import com.remember.rememberme.ui.theme.LightGreen
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.android.awaitFrame
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 
@@ -80,14 +101,22 @@ fun CardsScreenRoute(
     val viewState by viewModel.viewState.collectAsStateWithLifecycle()
 
     val listState = rememberLazyListState()
-    
-    viewModel.events.collectAsSharedFlowWithLifecycle { events ->
-        when (events) {
+
+    if (viewState.isInputDialogVisible) {
+        AnswerInputDialog(
+            onDialogDismissed = viewModel::onDialogDismissed,
+            onConfirmButtonPressed = {
+                viewModel.onInputConfirmed(viewState.activeCardIndex, it)
+            }
+        )
+    }
+
+    viewModel.events.collectAsSharedFlowWithLifecycle { event ->
+        when (event) {
             is CardsScreenEvents.GoToNextCard -> {
                 listState.animateScrollToItem(viewState.activeCardIndex)
             }
         }
-
     }
 
     val recognition = rememberLauncherForActivityResult(
@@ -120,6 +149,9 @@ fun CardsScreenRoute(
 
                     recognition.launch(intent)
                 },
+                onKeyboardButtonClicked = viewModel::onKeyboardButtonClicked,
+                onCheckButtonClicked = viewModel::onCheckButtonClicked,
+                onSkipButtonClicked = viewModel::onSkipButtonClicked,
                 onBackButtonPressed = {
                     onBackButtonPressed.invoke()
                 }
@@ -130,6 +162,49 @@ fun CardsScreenRoute(
             // do nothing for now
         }
     }
+}
+
+@Composable
+private fun AnswerInputDialog(
+    onDialogDismissed: () -> Unit,
+    onConfirmButtonPressed: (String) -> Unit,
+) {
+    var input by remember { mutableStateOf("") }
+    val focusRequester = remember { FocusRequester() }
+
+    InputAlertDialog(
+        title = { Text(text = "Input value") },
+        content = {
+            OutlinedTextField(
+                value = input,
+                singleLine = true,
+                onValueChange = {
+                    input = it
+                },
+                modifier = Modifier.focusRequester(focusRequester)
+            )
+        },
+        dismissButton = {
+            TextButton(onClick = { onDialogDismissed.invoke() }) {
+                Text(text = "Cancel")
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = {
+                onConfirmButtonPressed.invoke(input)
+            }
+            ) {
+                Text(text = "OK")
+            }
+        },
+        onDismiss = {
+            onDialogDismissed.invoke()
+        })
+
+    LaunchedEffect(key1 = focusRequester, block = {
+        awaitFrame()
+        focusRequester.requestFocus()
+    })
 }
 
 private fun LazyListState.isHalfPastItemRight(): Boolean {
@@ -153,10 +228,11 @@ private fun CardsScreen(
     viewState: CardsViewState,
     listState: LazyListState,
     onBackButtonPressed: () -> Unit,
-    onMicButtonClicked: ((cardId: Int) -> Unit)
+    onMicButtonClicked: ((cardIndex: Int) -> Unit),
+    onKeyboardButtonClicked: ((cardIndex: Int) -> Unit),
+    onCheckButtonClicked: ((cardIndex: Int) -> Unit),
+    onSkipButtonClicked: ((cardIndex: Int) -> Unit),
 ) {
-    val activeCard = set.cards[viewState.activeCardIndex]
-
     Box {
         Column(
             modifier = Modifier
@@ -246,58 +322,108 @@ private fun CardsScreen(
                     modifier = Modifier.padding(top = 32.dp),
                     height = 64.dp
                 ) {
-                    Row(
-                        modifier = Modifier
+                    Column(
+                        Modifier
                             .clip(RoundedCornerShape(16.dp))
                             .fillMaxSize()
+                            .padding(16.dp)
                     ) {
-                        val (icon, text) = if (viewState.isRecognitionSuccessful) {
-                            Icons.Filled.Check to "Correct! Correctness is ${viewState.correctnessPercents}!"
-                        } else {
-                            Icons.Filled.Close to "Oops! Try once more!"
-                        }
-
-                        Icon(
-                            imageVector = icon,
-                            contentDescription = null,
+                        Text(
+                            text = "SCORE",
                             modifier = Modifier
+                        )
+                        Spacer(
+                            modifier = Modifier
+                                .background(Color.Black)
+                                .padding(top = 8.dp)
+                                .height(1.dp)
+                                .width(24.dp)
                                 .padding(start = 8.dp)
-                                .align(Alignment.CenterVertically)
                         )
                         Text(
-                            text = text,
-                            modifier = Modifier
-                                .padding(horizontal = 8.dp)
-                                .align(Alignment.CenterVertically)
+                            text = viewState.score.toString(),
+                            fontSize = 16.sp,
+                            modifier = Modifier.padding(top = 8.dp)
                         )
                     }
                 }
             }
         }
 
-        Button(
-            onClick = {
-                onMicButtonClicked.invoke(activeCard.id)
-            }, modifier = Modifier
+        Row(
+            Modifier
                 .align(Alignment.BottomCenter)
-                .padding(bottom = 16.dp)
-                .height(64.dp),
-            shape = CircleShape
+                .fillMaxWidth()
+                .padding(horizontal = 32.dp),
+            horizontalArrangement = Arrangement.SpaceEvenly,
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Icon(
-                painter = painterResource(R.drawable.ic_mic),
-                contentDescription = null,
-                modifier = Modifier,
-                tint = Color.Black
+            ActionButton(
+                iconResId = R.drawable.ic_cross,
+                buttonColors = ButtonDefaults.buttonColors(containerColor = Color.Gray),
+                onButtonClicked = { onSkipButtonClicked.invoke(viewState.activeCardIndex) }
+            )
+
+            ActionButton(
+                iconResId = R.drawable.ic_mic,
+                onButtonClicked = {
+                    onMicButtonClicked.invoke(viewState.activeCardIndex)
+                })
+
+            ActionButton(
+                iconResId = R.drawable.ic_keyboard,
+                onButtonClicked = {
+                    onKeyboardButtonClicked.invoke(viewState.activeCardIndex)
+                }
+            )
+
+            ActionButton(
+                iconResId = R.drawable.ic_check,
+                buttonColors = ButtonDefaults.buttonColors(containerColor = LightGreen),
+                onButtonClicked = { onCheckButtonClicked.invoke(viewState.activeCardIndex) }
             )
         }
+    }
+}
+
+@Composable
+private fun RowScope.ActionButton(
+    @DrawableRes
+    iconResId: Int,
+    onButtonClicked: () -> Unit,
+    modifier: Modifier = Modifier,
+    buttonColors: ButtonColors = ButtonDefaults.buttonColors()
+) {
+    Button(
+        colors = buttonColors,
+        onClick = {
+            onButtonClicked.invoke()
+        }, modifier = modifier
+            .align(Alignment.CenterVertically)
+            .padding(bottom = 16.dp)
+            .height(64.dp),
+        shape = CircleShape
+    ) {
+        Icon(
+            painter = painterResource(iconResId),
+            contentDescription = null,
+            modifier = Modifier,
+            tint = Color.Black
+        )
     }
 }
 
 @Preview
 @Composable
 fun CardsScreenPreview() {
-    CardsScreen(set = CardSet(1, "Daily Conversation", emptyList()), CardsViewState(), rememberLazyListState(), {}) {
+    CardsScreen(
+        set = CardSet(1, "Daily Conversation", emptyList()),
+        CardsViewState(),
+        rememberLazyListState(),
+        {},
+        {},
+        {},
+        {}) {
 
     }
 }

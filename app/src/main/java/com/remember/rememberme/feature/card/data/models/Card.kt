@@ -5,4 +5,5 @@ data class Card(
     val text: String,
     val translation: String,
     val example: String,
+    val learned: Boolean,
 )

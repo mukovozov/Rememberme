@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.remember.rememberme.core.Result
 import com.remember.rememberme.core.asResult
+import com.remember.rememberme.core.coroutines.EventFlow
 import com.remember.rememberme.di.SetIdParameter
 import com.remember.rememberme.feature.card.data.SetRepository
 import com.remember.rememberme.feature.card.data.models.Card
@@ -15,7 +16,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
@@ -51,31 +51,85 @@ class CardsViewModel @Inject constructor(
     private val _viewState = MutableStateFlow(CardsViewState())
     val viewState = _viewState.asStateFlow()
 
-    private val _events = MutableSharedFlow<CardsScreenEvents>(extraBufferCapacity = 1)
+    private val _events = EventFlow<CardsScreenEvents>()
     val events = _events.asSharedFlow()
 
     fun onSpeechRecognized(cardIndex: Int, recognizedResults: List<String>) {
+        val answer = recognizedResults.joinToString(separator = " ")
+        onCardAnswered(cardIndex, answer)
+    }
+
+    fun onKeyboardButtonClicked(cardIndex: Int) {
+        _viewState.update {
+            it.copy(isInputDialogVisible = true)
+        }
+    }
+
+    fun onCheckButtonClicked(cardIndex: Int) {
+        // TODO: introduce "learned" logic
+        onCardSkipped(cardIndex)
+    }
+
+    fun onSkipButtonClicked(cardIndex: Int) {
+        onCardSkipped(cardIndex)
+    }
+
+    fun onInputConfirmed(cardIndex: Int, input: String) {
+        _viewState.update {
+            it.copy(isInputDialogVisible = false)
+        }
+
+        onCardAnswered(cardIndex, input)
+    }
+
+    fun onDialogDismissed() {
+        _viewState.update { it.copy(isInputDialogVisible = false) }
+    }
+
+    private fun onCardSkipped(cardIndex: Int) {
+        _viewState.update {
+            it.copy(
+                activeCardIndex = it.activeCardIndex + 1,
+                isRecognitionSuccessful = false,
+                score = calculateScore(false, it.score)
+            )
+        }
+
+        _events.tryEmit(CardsScreenEvents.GoToNextCard)
+    }
+
+    private fun onCardAnswered(cardIndex: Int, answer: String) {
         val card = cards[cardIndex]
-        val result = recognizedResults.joinToString(separator = " ")
 
-        card?.let {
-            val similarityPercentage = calculateSimilarityPercentage(card.text, result)
+        val similarityPercentage = calculateSimilarityPercentage(card.text, answer)
 
-            val isRecognitionSuccessful = similarityPercentage > 50
+        val isRecognitionSuccessful = similarityPercentage > 50
 
-            _viewState.update {
-                it.copy(
-                    correctnessPercents = similarityPercentage.toInt(),
-                    activeCardIndex = if (isRecognitionSuccessful) it.activeCardIndex + 1 else it.activeCardIndex,
-                    isRecognitionSuccessful = isRecognitionSuccessful
-                )
-            }
+        _viewState.update {
+            it.copy(
+                correctnessPercents = similarityPercentage.toInt(),
+                activeCardIndex = if (isRecognitionSuccessful) it.activeCardIndex + 1 else it.activeCardIndex,
+                isRecognitionSuccessful = isRecognitionSuccessful,
+                score = calculateScore(isRecognitionSuccessful, it.score)
+            )
+        }
 
-            if (isRecognitionSuccessful) {
-                _events.tryEmit(CardsScreenEvents.GoToNextCard)
-            }
+        if (isRecognitionSuccessful) {
+            _events.tryEmit(CardsScreenEvents.GoToNextCard)
+        }
 
-            Log.d("TAG", "similarityPercentage: $similarityPercentage of ${card.text} and $result")
+        Log.d("TAG", "similarityPercentage: $similarityPercentage of ${card.text} and $answer")
+    }
+
+    private fun calculateScore(
+        isRecognitionSuccessful: Boolean,
+        currentScore: Int
+    ): Int {
+        // TODO: introduce more elegant formula that takes correctnessPercents in consideration
+        return if (isRecognitionSuccessful) {
+            currentScore + (1f / cards.size * 100).toInt()
+        } else {
+            currentScore
         }
     }
 

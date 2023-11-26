@@ -16,5 +16,6 @@ data class CardEntity(
 )
 
 fun CardEntity.asExternalModel(): Card {
-    return Card(cardId, text, translation, example)
+    // TODO: introduce learned logic
+    return Card(cardId, text, translation, example, false)
 }

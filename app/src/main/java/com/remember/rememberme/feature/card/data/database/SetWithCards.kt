@@ -19,6 +19,6 @@ fun SetWithCards.asExternalModel(): CardSet = CardSet(
     id = setEntity.setId,
     name = setEntity.name,
     cards = cardsEntities.map {
-        Card(it.cardId, it.text, it.translation, it.example)
+        it.asExternalModel()
     }
 )
