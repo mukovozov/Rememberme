@@ -1,15 +1,14 @@
 package com.remember.rememberme.feature.card.ui.cards
 
-import com.remember.rememberme.feature.card.data.models.Card
 import com.remember.rememberme.feature.card.data.models.CardSet
 
 data class CardsViewState(
     val activeCardIndex: Int = 0,
-    val correctnessPercents: Int? = null,
+    val correctnessPercents: Int = 0,
     val isRecognitionSuccessful: Boolean = false,
     val score: Int = 0,
     val isInputDialogVisible: Boolean = false,
-//    val currentInput: String = ""
+    val currentAnswer: String = ""
 )
 
 sealed interface CardsUiState {

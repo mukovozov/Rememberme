@@ -110,7 +110,8 @@ class CardsViewModel @Inject constructor(
                 correctnessPercents = similarityPercentage.toInt(),
                 activeCardIndex = if (isRecognitionSuccessful) it.activeCardIndex + 1 else it.activeCardIndex,
                 isRecognitionSuccessful = isRecognitionSuccessful,
-                score = calculateScore(isRecognitionSuccessful, it.score)
+                score = calculateScore(isRecognitionSuccessful, it.score),
+                currentAnswer = if (!isRecognitionSuccessful) answer else ""
             )
         }
 

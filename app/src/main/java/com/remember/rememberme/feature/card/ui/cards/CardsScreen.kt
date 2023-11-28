@@ -32,7 +32,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.ButtonDefaults
@@ -56,10 +55,9 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.platform.LocalLifecycleOwner
-import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -317,36 +315,8 @@ private fun CardsScreen(
                 }
             }
 
-            if (viewState.correctnessPercents != null) {
-                RememberCard(
-                    modifier = Modifier.padding(top = 32.dp),
-                    height = 64.dp
-                ) {
-                    Column(
-                        Modifier
-                            .clip(RoundedCornerShape(16.dp))
-                            .fillMaxSize()
-                            .padding(16.dp)
-                    ) {
-                        Text(
-                            text = "SCORE",
-                            modifier = Modifier
-                        )
-                        Spacer(
-                            modifier = Modifier
-                                .background(Color.Black)
-                                .padding(top = 8.dp)
-                                .height(1.dp)
-                                .width(24.dp)
-                                .padding(start = 8.dp)
-                        )
-                        Text(
-                            text = viewState.score.toString(),
-                            fontSize = 16.sp,
-                            modifier = Modifier.padding(top = 8.dp)
-                        )
-                    }
-                }
+            if (viewState.currentAnswer.isNotEmpty() && !viewState.isRecognitionSuccessful) {
+                ScoreCard(viewState)
             }
         }
 
@@ -387,6 +357,73 @@ private fun CardsScreen(
 }
 
 @Composable
+private fun ScoreCard(viewState: CardsViewState) {
+    RememberCard(
+        modifier = Modifier.padding(top = 32.dp),
+        height = 100.dp
+    ) {
+        Row(
+            modifier = Modifier.fillMaxSize()
+                .clip(RoundedCornerShape(16.dp))
+                .fillMaxSize()
+                .padding(16.dp),
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Column(Modifier) {
+                Text(
+                    text = "SCORE",
+                    modifier = Modifier,
+                    color = Color.Black,
+                    fontSize = 20.sp
+                )
+                Spacer(
+                    modifier = Modifier
+                        .padding(start = 16.dp)
+                        .background(MaterialTheme.colorScheme.tertiary)
+                        .height(1.dp)
+                        .padding(top = 8.dp)
+                        .width(56.dp)
+                )
+                Text(
+                    text = "${viewState.correctnessPercents}",
+                    modifier = Modifier.padding(top = 8.dp),
+                    color = Color.Black,
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.Bold,
+                )
+            }
+
+            Column(
+                Modifier
+                    .padding(end = 32.dp)
+            ) {
+                Text(
+                    text = "ANSWER",
+                    modifier = Modifier,
+                    color = Color.Black,
+                    fontSize = 20.sp
+                )
+                Spacer(
+                    modifier = Modifier
+                        .padding(start = 16.dp)
+                        .background(MaterialTheme.colorScheme.tertiary)
+                        .height(1.dp)
+                        .padding(top = 8.dp)
+                        .width(80.dp)
+                )
+                Text(
+                    text = viewState.currentAnswer,
+                    modifier = Modifier.padding(top = 8.dp),
+                    color = Color.Black,
+                    fontSize = 19.sp,
+                    fontWeight = FontWeight.Bold,
+                )
+            }
+        }
+    }
+}
+
+@Composable
 private fun RowScope.ActionButton(
     @DrawableRes
     iconResId: Int,
@@ -413,17 +450,29 @@ private fun RowScope.ActionButton(
     }
 }
 
+//@Preview
+//@Composable
+//fun CardsScreenPreview() {
+//    CardsScreen(
+//        set = CardSet(1, "Daily Conversation", emptyList()),
+//        CardsViewState(),
+//        rememberLazyListState(),
+//        {},
+//        {},
+//        {},
+//        {}) {
+//
+//    }
+//}
+
 @Preview
 @Composable
-fun CardsScreenPreview() {
-    CardsScreen(
-        set = CardSet(1, "Daily Conversation", emptyList()),
-        CardsViewState(),
-        rememberLazyListState(),
-        {},
-        {},
-        {},
-        {}) {
-
-    }
+fun ScorePreview() {
+    ScoreCard(
+        viewState = CardsViewState(
+            activeCardIndex = 1,
+            isRecognitionSuccessful = false,
+            score = 0,
+        )
+    )
 }
