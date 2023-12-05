@@ -16,6 +16,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
@@ -34,6 +35,7 @@ class CardsViewModel @Inject constructor(
 
     val cardsUiState = setsRepository.getSetById(setId)
         .onEach { cards = it?.cards ?: emptyList() }
+        .filterNotNull()
         .asResult()
         .map { result ->
             when (result) {
@@ -89,7 +91,7 @@ class CardsViewModel @Inject constructor(
     private fun onCardSkipped(cardIndex: Int) {
         _viewState.update {
             it.copy(
-                activeCardIndex = it.activeCardIndex + 1,
+                activeCardIndex = cardIndex + 1,
                 isRecognitionSuccessful = false,
                 score = calculateScore(false, it.score)
             )

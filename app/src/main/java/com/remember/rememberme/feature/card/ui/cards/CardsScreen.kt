@@ -68,6 +68,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.repeatOnLifecycle
 import com.remember.rememberme.R
 import com.remember.rememberme.feature.card.data.models.CardSet
+import com.remember.rememberme.ui.components.ActionButton
 import com.remember.rememberme.ui.components.Header
 import com.remember.rememberme.ui.components.InputAlertDialog
 import com.remember.rememberme.ui.components.RememberCard
@@ -420,33 +421,6 @@ private fun ScoreCard(viewState: CardsViewState) {
                 )
             }
         }
-    }
-}
-
-@Composable
-private fun RowScope.ActionButton(
-    @DrawableRes
-    iconResId: Int,
-    onButtonClicked: () -> Unit,
-    modifier: Modifier = Modifier,
-    buttonColors: ButtonColors = ButtonDefaults.buttonColors()
-) {
-    Button(
-        colors = buttonColors,
-        onClick = {
-            onButtonClicked.invoke()
-        }, modifier = modifier
-            .align(Alignment.CenterVertically)
-            .padding(bottom = 16.dp)
-            .height(64.dp),
-        shape = CircleShape
-    ) {
-        Icon(
-            painter = painterResource(iconResId),
-            contentDescription = null,
-            modifier = Modifier,
-            tint = Color.Black
-        )
     }
 }
 

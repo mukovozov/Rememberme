@@ -7,6 +7,8 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.remember.rememberme.feature.card.ui.cards.CardsScreenRoute
+import com.remember.rememberme.feature.card.ui.flashcards.FlashcardsScreen
+import com.remember.rememberme.feature.card.ui.flashcards.FlashcardsScreenRoute
 import com.remember.rememberme.feature.card.ui.sets.SetsScreenRoute
 
 const val setsNavigationRoute = "sets_route"
@@ -38,6 +40,6 @@ fun NavGraphBuilder.cardsScreen(onBackPressed: () -> Unit) {
             }
         )
     ) {
-        CardsScreenRoute(onBackPressed)
+        FlashcardsScreenRoute(onBackPressed)
     }
 }

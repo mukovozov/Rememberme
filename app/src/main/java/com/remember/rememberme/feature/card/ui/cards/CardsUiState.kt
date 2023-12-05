@@ -15,7 +15,7 @@ sealed interface CardsUiState {
     object Loading : CardsUiState
 
     data class Success(
-        val set: CardSet? = null,
+        val set: CardSet,
     ) : CardsUiState
 
     object Error : CardsUiState
