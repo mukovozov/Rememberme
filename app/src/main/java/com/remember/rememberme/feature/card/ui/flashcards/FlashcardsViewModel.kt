@@ -33,7 +33,10 @@ class FlashcardsViewModel @Inject constructor(
 
     val cardsUiState = setsRepository.getSetById(setId)
         .filterNotNull()
-        .onEach { cards = it.cards }
+        .onEach { set ->
+            cards = set.cards
+            _viewState.update { it.copy(currentCard = set.cards.firstOrNull()) }
+        }
         .asResult()
         .map { result ->
             when (result) {
@@ -62,16 +65,35 @@ class FlashcardsViewModel @Inject constructor(
         nextCard(cardIndex, false)
     }
 
+    fun onRestartButtonClicked() {
+        val firstCard = cards.firstOrNull() ?: return
+        _viewState.update {
+            it.copyWithDroppedProgress(firstCard)
+        }
+    }
+
     private fun nextCard(cardIndex: Int, isLearned: Boolean) {
         if (cardIndex == cards.size - 1) {
+            _viewState.update {
+                it.copy(
+                    sessionProgress = 1f,
+                    isSetFinished = true
+                )
+            }
+
             return
         }
 
+        val nextCardIndex = cardIndex + 1
         _viewState.update {
+            val learned = if (isLearned) it.learned + 1 else it.learned
             it.copy(
-                activeCardIndex = cardIndex + 1,
+                activeCardIndex = nextCardIndex,
+                currentCard = cards[nextCardIndex],
                 skipped = if (isLearned) it.skipped else it.skipped + 1,
-                learned = if (isLearned) it.learned + 1 else it.learned
+                learned = learned,
+                sessionProgress = nextCardIndex.toFloat() / cards.size,
+                learningProgress = learned.toFloat() / (cards.size - 1)
             )
         }
 
