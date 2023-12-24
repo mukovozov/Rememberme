@@ -3,11 +3,9 @@ package com.remember.rememberme.feature.card.ui.sets
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -32,6 +30,7 @@ import com.remember.rememberme.feature.card.data.models.CardSet
 import com.remember.rememberme.ui.components.Header
 import com.remember.rememberme.ui.components.RememberCard
 import com.remember.rememberme.ui.components.SubHeader
+import com.remember.rememberme.ui.theme.Black
 
 @Composable
 fun SetsScreenRoute(
@@ -59,7 +58,11 @@ private fun SetsScreen(
     state: SetsUiState.Success,
     onSetSelected: (setId: Int) -> Unit,
 ) {
-    Column() {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Black)
+    ) {
         Header(text = "RememberMe")
         SubHeader(text = "Pick a set to practice")
         LazyColumn(
