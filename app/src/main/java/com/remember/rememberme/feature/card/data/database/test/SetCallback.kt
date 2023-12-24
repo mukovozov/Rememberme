@@ -28,8 +28,8 @@ class SetCallback(
             )
             val set = SetEntity(1, "set1")
 
-            cardDaoProvider.get().insertAll(*cards.toTypedArray())
-            setDaoProvider.get().insertAll(set)
+            cardDaoProvider.get().insertAll(cards)
+            setDaoProvider.get().insert(set)
         }
     }
 }

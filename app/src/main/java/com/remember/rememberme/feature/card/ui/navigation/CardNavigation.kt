@@ -6,11 +6,12 @@ import androidx.navigation.NavOptions
 import androidx.navigation.NavType
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import com.remember.rememberme.feature.card.ui.create_set.CreateSetScreenRoute
 import com.remember.rememberme.feature.card.ui.flashcards.FlashcardsScreenRoute
 import com.remember.rememberme.feature.card.ui.sets.SetsScreenRoute
 
 const val setsNavigationRoute = "sets_route"
-
+const val createSetNavigationRoute = "create_set_route"
 private const val cardsNavigationRoute = "cards_route"
 
 fun NavController.navigateToSets() {
@@ -21,11 +22,26 @@ fun NavController.navigateToSets() {
     this.navigate(setsNavigationRoute, navOptions)
 }
 
-fun NavGraphBuilder.setsScreen(onSetSelected: (setId: Int) -> Unit) {
+fun NavController.navigateToCreateSetScreen() {
+    navigate(createSetNavigationRoute)
+}
+
+fun NavGraphBuilder.setsScreen(
+    onSetSelected: (setId: Int) -> Unit,
+    onCreateSetClicked: () -> Unit,
+) {
     composable(
         route = setsNavigationRoute,
     ) {
-        SetsScreenRoute(onSetSelected)
+        SetsScreenRoute(onSetSelected, onCreateSetClicked)
+    }
+}
+
+fun NavGraphBuilder.createSetScreen(onBackPressed: () -> Unit) {
+    composable(
+        route = createSetNavigationRoute
+    ) {
+        CreateSetScreenRoute(onBackPressed = onBackPressed)
     }
 }
 

@@ -7,14 +7,19 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.FabPosition
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -31,16 +36,18 @@ import com.remember.rememberme.ui.components.Header
 import com.remember.rememberme.ui.components.RememberCard
 import com.remember.rememberme.ui.components.SubHeader
 import com.remember.rememberme.ui.theme.Black
+import com.remember.rememberme.ui.theme.Purple80
 
 @Composable
 fun SetsScreenRoute(
     onSetSelected: (setId: Int) -> Unit,
+    onCreateSetClicked: () -> Unit,
     cardsViewModel: SetsViewModel = hiltViewModel()
 ) {
     val cardsUiState by cardsViewModel.setsUiState.collectAsStateWithLifecycle()
     when (val state = cardsUiState) {
         is SetsUiState.Success -> {
-            SetsScreen(state, onSetSelected)
+            SetsScreen(state, onSetSelected, onCreateSetClicked)
         }
 
         is SetsUiState.Loading -> {
@@ -57,20 +64,39 @@ fun SetsScreenRoute(
 private fun SetsScreen(
     state: SetsUiState.Success,
     onSetSelected: (setId: Int) -> Unit,
+    onCreateSetClicked: () -> Unit,
 ) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Black)
+    Scaffold(
+        floatingActionButton = {
+            IconButton(
+                onClick = onCreateSetClicked,
+                modifier = Modifier
+                    .size(64.dp)
+                    .background(Purple80, RoundedCornerShape(50))
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.Add,
+                    contentDescription = "",
+                )
+            }
+        },
+        floatingActionButtonPosition = FabPosition.Center
     ) {
-        Header(text = "RememberMe")
-        SubHeader(text = "Pick a set to practice")
-        LazyColumn(
+        Column(
             modifier = Modifier
-                .padding(all = 16.dp)
+                .fillMaxSize()
+                .padding(it)
+                .background(Black)
         ) {
-            items(state.sets) { set ->
-                Set(set, onSetSelected)
+            Header(text = "RememberMe")
+            SubHeader(text = "Pick a set to practice")
+            LazyColumn(
+                modifier = Modifier
+                    .padding(all = 16.dp)
+            ) {
+                items(state.sets) { set ->
+                    Set(set, onSetSelected)
+                }
             }
         }
     }

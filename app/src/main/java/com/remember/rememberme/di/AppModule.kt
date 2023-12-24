@@ -14,15 +14,25 @@ import com.remember.rememberme.feature.card.data.SetRepositoryImpl
 import com.remember.rememberme.feature.card.data.database.dao.CardDao
 import com.remember.rememberme.feature.card.data.database.dao.SetDao
 import com.remember.rememberme.feature.card.data.database.test.SetCallback
+import com.remember.rememberme.feature.create_set.data.MockSetCreationRepositoryImpl
+import com.remember.rememberme.feature.create_set.data.SetCreationRepository
+import com.remember.rememberme.feature.create_set.data.SetCreationRepositoryImpl
+import com.squareup.moshi.Moshi
+import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import dagger.Binds
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import fuel.Fuel
+import fuel.FuelBuilder
+import fuel.HttpLoader
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import okhttp3.OkHttpClient
+import okhttp3.logging.HttpLoggingInterceptor
 import javax.inject.Provider
 import javax.inject.Singleton
 
@@ -37,6 +47,10 @@ interface AppModule {
     @Binds
     @Singleton
     fun provideSetRepository(setRepositoryImpl: SetRepositoryImpl): SetRepository
+
+    @Binds
+    @Singleton
+    fun provideSetCreationRepository(setCreationRepositoryImpl: MockSetCreationRepositoryImpl): SetCreationRepository
 
     @Binds
     @Singleton
@@ -61,6 +75,30 @@ interface AppModule {
                         SetCallback(setDaoProvider, cardDaoProvider).onCreate(db)
                     }
                 })
+                .build()
+        }
+
+        @Provides
+        @Singleton
+        fun provideMoshi(): Moshi {
+            return Moshi.Builder()
+                .addLast(KotlinJsonAdapterFactory())
+                .build()
+        }
+
+        @Provides
+        @Singleton
+        fun provideOkHttp(moshi: Moshi): OkHttpClient {
+            return OkHttpClient.Builder()
+                .addInterceptor(HttpLoggingInterceptor())
+                .build()
+        }
+
+        @Provides
+        @Singleton
+        fun provideFuel(okHttpClient: OkHttpClient): HttpLoader {
+            return FuelBuilder()
+                .config(okHttpClient)
                 .build()
         }
 
