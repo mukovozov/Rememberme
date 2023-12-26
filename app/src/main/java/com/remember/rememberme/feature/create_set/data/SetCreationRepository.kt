@@ -1,5 +1,6 @@
 package com.remember.rememberme.feature.create_set.data
 
+import com.remember.rememberme.BuildConfig
 import com.remember.rememberme.core.coroutines.Outcome
 import com.remember.rememberme.feature.create_set.data.models.QueryMessage
 import com.remember.rememberme.feature.create_set.data.models.QueryRequestBody
@@ -41,7 +42,7 @@ class SetCreationRepositoryImpl @Inject constructor(
                 .url("https://api.openai.com/v1/chat/completions")
                 .headers(mapOf(
                     "Content-Type" to "application/json",
-                    "Authorization" to "Bearer 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")
+                    "Authorization" to "Bearer ${BuildConfig.CHAT_GPT_TOKEN}")
                 )
                 .body(body)
                 .build()

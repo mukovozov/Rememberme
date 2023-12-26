@@ -36,18 +36,6 @@ class SetsViewModel @Inject constructor(
             initialValue = SetsUiState.Loading
         )
 
-    init {
-        viewModelScope.launch {
-            setCreationUseCase.createSetFromQuery("tiktok", "Hello!")
-                .onSuccess {
-                    Log.d(TAG, "$it")
-                }
-                .onError {
-                    Log.e(TAG, "$it", it)
-                }
-        }
-    }
-
     private companion object {
         const val TAG = "SetsViewModel"
     }

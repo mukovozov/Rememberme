@@ -33,6 +33,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
+import java.util.concurrent.TimeUnit
+import javax.inject.Named
 import javax.inject.Provider
 import javax.inject.Singleton
 
@@ -50,7 +52,12 @@ interface AppModule {
 
     @Binds
     @Singleton
-    fun provideSetCreationRepository(setCreationRepositoryImpl: MockSetCreationRepositoryImpl): SetCreationRepository
+    fun provideSetCreationRepository(setCreationRepositoryImpl: SetCreationRepositoryImpl): SetCreationRepository
+
+//    @Binds
+//    @Singleton
+//    fun provideSetCreationRepository(setCreationRepositoryImpl: MockSetCreationRepositoryImpl): SetCreationRepository
+
 
     @Binds
     @Singleton
@@ -91,6 +98,8 @@ interface AppModule {
         fun provideOkHttp(moshi: Moshi): OkHttpClient {
             return OkHttpClient.Builder()
                 .addInterceptor(HttpLoggingInterceptor())
+                .readTimeout(60, TimeUnit.SECONDS)
+                .writeTimeout(60, TimeUnit.SECONDS)
                 .build()
         }
 

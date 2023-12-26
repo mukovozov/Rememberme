@@ -1,4 +1,6 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import java.io.FileInputStream
+import java.util.Properties
 
 plugins {
     id("com.android.application")
@@ -25,9 +27,19 @@ android {
         }
     }
 
+    val props = Properties()
+    props.load(FileInputStream("$rootDir/local.properties"))
+    val token = props.getProperty("chat-gpt.token")
+
     buildTypes {
+
+        debug {
+            buildConfigField("String", "CHAT_GPT_TOKEN", token)
+        }
+
         release {
-            isMinifyEnabled = false
+            buildConfigField("String", "CHAT_GPT_TOKEN", token)
+            isMinifyEnabled = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
     }
@@ -41,6 +53,7 @@ android {
 
     buildFeatures {
         compose = true
+        buildConfig = true
     }
     composeOptions {
         kotlinCompilerExtensionVersion = "1.4.3"

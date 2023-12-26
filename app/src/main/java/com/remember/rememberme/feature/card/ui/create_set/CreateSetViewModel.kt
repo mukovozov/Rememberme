@@ -3,6 +3,7 @@ package com.remember.rememberme.feature.card.ui.create_set
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.remember.rememberme.feature.card.data.SetRepository
+import com.remember.rememberme.feature.card.data.models.Card
 import com.remember.rememberme.feature.create_set.domain.SetCreationUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
@@ -12,6 +13,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import javax.inject.Named
 
 @HiltViewModel
 class CreateSetViewModel @Inject constructor(
@@ -29,7 +31,13 @@ class CreateSetViewModel @Inject constructor(
 
     fun onGenerateButtonClicked(query: String) {
         viewModelScope.launch {
-            _viewState.update { it.copy(isSetGenerating = true, query = query) }
+            _viewState.update {
+                it.copy(
+                    isSetGenerating = true,
+                    query = query,
+                    generatedSet = null
+                )
+            }
             setCreationUseCase.createSetFromQuery(theme = query, query = query)
                 .onSuccess { set ->
                     delay(2_000)
@@ -53,5 +61,12 @@ class CreateSetViewModel @Inject constructor(
             val set = _viewState.value.generatedSet ?: return@launch
             setRepository.saveSet(set)
         }
+    }
+
+    fun onCardChanged(card: Card) {
+//        _viewState.update {
+//            val newCard = it.generatedSet?.cards?.indexOfFirst { it == card}
+//            it.copy(generatedSet = )
+//        }
     }
 }
