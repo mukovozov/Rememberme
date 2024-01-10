@@ -2,6 +2,7 @@
 
 package com.remember.rememberme.feature.card.ui.create_set
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -41,8 +42,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.remember.rememberme.feature.card.data.models.Card
 import com.remember.rememberme.ui.theme.Black
-import com.remember.rememberme.ui.theme.Purple80
-import com.remember.rememberme.ui.theme.PurpleGrey40
+import com.remember.rememberme.ui.theme.Pink80
+import com.remember.rememberme.ui.theme.Purple40
 import com.remember.rememberme.ui.theme.White
 
 @Composable
@@ -72,7 +73,7 @@ fun CreateSet(
         topBar = {
             TopAppBar(
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Purple80,
+                    containerColor = Purple40,
                     actionIconContentColor = Black,
                     navigationIconContentColor = Black
                 ),
@@ -138,59 +139,73 @@ fun CreateSet(
                 }
             }
 
-            val cards = viewState.generatedSet?.cards ?: return@Scaffold
-            LazyColumn(
-                modifier = Modifier.padding(top = 16.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                items(cards) { card ->
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .background(PurpleGrey40, RoundedCornerShape(12.dp))
-                    ) {
-                        TextField(
-                            label = {
-                                Text(text = "Term")
-                            },
-                            value = card.text,
-                            readOnly = true,
-                            onValueChange = {},
-                            colors = TextFieldDefaults.colors(
-                                focusedContainerColor = Color.Transparent,
-                                unfocusedContainerColor = Color.Transparent
-                            )
-                        )
-                        TextField(
-                            label = {
-                                Text(text = "Translation")
-                            },
-                            modifier = Modifier.padding(top = 8.dp),
-                            value = card.translation,
-                            readOnly = true,
-                            onValueChange = {},
-                            colors = TextFieldDefaults.colors(
-                                focusedContainerColor = Color.Transparent,
-                                unfocusedContainerColor = Color.Transparent
-                            )
-                        )
-                        TextField(
-                            label = {
-                                Text(text = "Example")
-                            },
-                            modifier = Modifier.padding(top = 8.dp),
-                            value = card.example,
-                            readOnly = true,
-                            onValueChange = {},
-                            colors = TextFieldDefaults.colors(
-                                focusedContainerColor = Color.Transparent,
-                                unfocusedContainerColor = Color.Transparent
-                            )
-                        )
+            val cards = viewState.generatedSet?.cards
+            val isRecommendationsVisible = remember {
+                !cards.isNullOrEmpty()
+            }
+            AnimatedVisibility(visible = isRecommendationsVisible) {
+                LazyColumn(
+                    modifier = Modifier.padding(top = 16.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    cards?.let {
+                        items(it) { card ->
+                            RecommendedCard(card)
+                        }
                     }
                 }
+
             }
         }
+    }
+}
+
+@Composable
+private fun RecommendedCard(card: Card) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(Pink80, RoundedCornerShape(12.dp))
+            .padding(8.dp)
+    ) {
+        TextField(
+            label = {
+                Text(text = "Term")
+            },
+            value = card.text,
+            readOnly = true,
+            onValueChange = {},
+            colors = TextFieldDefaults.colors(
+                focusedContainerColor = Color.Transparent,
+                unfocusedContainerColor = Color.Transparent
+            )
+        )
+        TextField(
+            label = {
+                Text(text = "Translation")
+            },
+            modifier = Modifier.padding(top = 8.dp),
+            value = card.translation,
+            readOnly = true,
+            onValueChange = {},
+            colors = TextFieldDefaults.colors(
+                focusedContainerColor = Color.Transparent,
+                unfocusedContainerColor = Color.Transparent
+            )
+        )
+        TextField(
+            label = {
+                Text(text = "Example")
+            },
+            modifier = Modifier.padding(top = 8.dp),
+            value = card.example,
+            readOnly = true,
+            onValueChange = {},
+            colors = TextFieldDefaults.colors(
+                focusedContainerColor = Color.Transparent,
+                unfocusedContainerColor = Color.Transparent
+            )
+        )
     }
 }
 
@@ -203,4 +218,10 @@ fun CreateSetScreenPreview() {
         onGenerateButtonClicked = {}, {}) {
 
     }
+}
+
+@Preview
+@Composable
+fun RecommendedSetPreview() {
+    RecommendedCard(card = Card(1, "text", "translation", "example", false))
 }

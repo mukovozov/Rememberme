@@ -35,9 +35,9 @@ class SetCreationUseCase @Inject constructor(
             .map {
                 Card(
                     id = UUID.randomUUID().hashCode(),
-                    text = it[0],
-                    translation = it[1],
-                    example = it[2],
+                    text = it[0].trim(),
+                    translation = it[1].trim(),
+                    example = it[2].trim(),
                     learned = false
                 )
             }

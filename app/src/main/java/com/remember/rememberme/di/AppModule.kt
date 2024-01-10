@@ -50,13 +50,13 @@ interface AppModule {
     @Singleton
     fun provideSetRepository(setRepositoryImpl: SetRepositoryImpl): SetRepository
 
-    @Binds
-    @Singleton
-    fun provideSetCreationRepository(setCreationRepositoryImpl: SetCreationRepositoryImpl): SetCreationRepository
-
 //    @Binds
 //    @Singleton
-//    fun provideSetCreationRepository(setCreationRepositoryImpl: MockSetCreationRepositoryImpl): SetCreationRepository
+//    fun provideSetCreationRepository(setCreationRepositoryImpl: SetCreationRepositoryImpl): SetCreationRepository
+
+    @Binds
+    @Singleton
+    fun provideSetCreationRepository(setCreationRepositoryImpl: MockSetCreationRepositoryImpl): SetCreationRepository
 
 
     @Binds
