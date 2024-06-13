@@ -8,7 +8,9 @@ import com.remember.rememberme.feature.card.data.models.Card
 import com.remember.rememberme.feature.card.data.models.CardSet
 import com.remember.rememberme.feature.create_set.domain.SetCreationUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.stateIn
@@ -22,17 +24,12 @@ class CreateSetViewModel @Inject constructor(
     private val setRepository: SetRepository,
 ) : ViewModel() {
 
-    private val _viewState = MutableStateFlow(CreateSetViewState())
-    val viewState = _viewState
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(stopTimeoutMillis = 5_000),
-            initialValue = CreateSetViewState()
-        )
+    val viewState = MutableStateFlow(CreateSetViewState())
+    val events = Channel<CreateSetEvent>(capacity = Channel.BUFFERED)
 
     fun onGenerateButtonClicked(query: String) {
         viewModelScope.launch {
-            _viewState.update {
+            viewState.update {
                 it.copy(
                     isSetGenerating = true,
                     query = query,
@@ -42,7 +39,7 @@ class CreateSetViewModel @Inject constructor(
             setCreationUseCase.createSetFromQuery(theme = query, query = query)
                 .onSuccess { set ->
                     delay(2_000)
-                    _viewState.update {
+                    viewState.update {
                         it.copy(
                             isSetGenerating = false,
                             generatedSet = set,
@@ -51,7 +48,7 @@ class CreateSetViewModel @Inject constructor(
                     }
                 }
                 .onError {
-                    _viewState.update {
+                    viewState.update {
                         it.copy(isSetGenerating = false)
                     }
                 }
@@ -60,13 +57,27 @@ class CreateSetViewModel @Inject constructor(
 
     fun onSetSubmitButtonClicked() {
         viewModelScope.launch {
-            val set = _viewState.value.generatedSet ?: return@launch
+            val cards = viewState.value.cards?.toList()
+            if (cards.isNullOrEmpty()) {
+                events.send(CreateSetEvent.ShowMessage("Please add at least one card"))
+                return@launch
+            }
+            val set = viewState.value.generatedSet?.copy(
+                cards = cards
+            ) ?: return@launch
+
+            if (set.name.isEmpty()) {
+                events.send(CreateSetEvent.ShowMessage("Please specify set name"))
+                return@launch
+            }
+
             setRepository.saveSet(set)
+            events.send(CreateSetEvent.GoBack)
         }
     }
 
     fun onTextChanged(card: Card, newText: String) {
-        _viewState.update { viewState ->
+        this.viewState.update { viewState ->
             val newCards = viewState.cards?.map {
                 it.copy(text = newText)
             } ?: return
@@ -76,7 +87,7 @@ class CreateSetViewModel @Inject constructor(
     }
 
     fun onTranslationChanged(card: Card, newText: String) {
-        _viewState.update { viewState ->
+        this.viewState.update { viewState ->
             val newCards = viewState.cards?.map {
                 if (it.id == card.id) {
                     it.copy(translation = newText)
@@ -90,7 +101,7 @@ class CreateSetViewModel @Inject constructor(
     }
 
     fun onExampleChanged(card: Card, newText: String) {
-        _viewState.update { viewState ->
+        this.viewState.update { viewState ->
             val newCards = viewState.cards?.map {
                 if (it.id == card.id) {
                     it.copy(example = newText)
@@ -104,7 +115,7 @@ class CreateSetViewModel @Inject constructor(
     }
 
     fun onCardRemoved(card: Card) {
-        _viewState.update {
+        this.viewState.update {
             val newCards = it.cards?.minus(card) ?: return
 
             it.copy(cards = newCards.toMutableStateList())
