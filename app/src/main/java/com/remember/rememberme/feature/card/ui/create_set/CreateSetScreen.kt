@@ -2,6 +2,7 @@
 
 package com.remember.rememberme.feature.card.ui.create_set
 
+import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
@@ -84,6 +85,9 @@ fun CreateSetScreenRoute(
                     when (event) {
                         is CreateSetEvent.GoBack -> {
                             onBackPressed.invoke()
+                        }
+                        is CreateSetEvent.ShowMessage -> {
+                            Toast.makeText(context, event.message, Toast.LENGTH_SHORT).show()
                         }
                     }
                 }

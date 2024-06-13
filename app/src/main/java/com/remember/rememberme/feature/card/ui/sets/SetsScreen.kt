@@ -1,7 +1,11 @@
+@file:OptIn(ExperimentalFoundationApi::class)
+
 package com.remember.rememberme.feature.card.ui.sets
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -14,6 +18,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowForward
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FabPosition
 import androidx.compose.material3.Icon
@@ -37,6 +42,7 @@ import com.remember.rememberme.ui.components.RememberCard
 import com.remember.rememberme.ui.components.SubHeader
 import com.remember.rememberme.ui.theme.Black
 import com.remember.rememberme.ui.theme.Purple80
+import com.remember.rememberme.ui.theme.RemembermeTheme
 
 @Composable
 fun SetsScreenRoute(
@@ -47,7 +53,7 @@ fun SetsScreenRoute(
     val cardsUiState by cardsViewModel.setsUiState.collectAsStateWithLifecycle()
     when (val state = cardsUiState) {
         is SetsUiState.Success -> {
-            SetsScreen(state, onSetSelected, onCreateSetClicked)
+            SetsScreen(state, onSetSelected, onCreateSetClicked, cardsViewModel::onSetDeleted)
         }
 
         is SetsUiState.Loading -> {
@@ -65,6 +71,7 @@ private fun SetsScreen(
     state: SetsUiState.Success,
     onSetSelected: (setId: Int) -> Unit,
     onCreateSetClicked: () -> Unit,
+    onSetDeleted: (setId: Int) -> Unit,
 ) {
     Scaffold(
         floatingActionButton = {
@@ -80,7 +87,7 @@ private fun SetsScreen(
                 )
             }
         },
-        floatingActionButtonPosition = FabPosition.Center
+        floatingActionButtonPosition = FabPosition.End
     ) {
         Column(
             modifier = Modifier
@@ -91,11 +98,18 @@ private fun SetsScreen(
             Header(text = "RememberMe")
             SubHeader(text = "Pick a set to practice")
             LazyColumn(
+                verticalArrangement = Arrangement.spacedBy(16.dp),
                 modifier = Modifier
                     .padding(all = 16.dp)
+                    .fillMaxSize()
             ) {
-                items(state.sets) { set ->
-                    Set(set, onSetSelected)
+                items(key = { it.id }, items = state.sets) { set ->
+                    Set(
+                        set = set,
+                        modifier = Modifier.animateItemPlacement(),
+                        onSetSelected = onSetSelected,
+                        onSetDeleted = onSetDeleted,
+                    )
                 }
             }
         }
@@ -105,46 +119,73 @@ private fun SetsScreen(
 @Composable
 fun Set(
     set: CardSet,
+    modifier: Modifier = Modifier,
     onSetSelected: (setId: Int) -> Unit,
+    onSetDeleted: (setId: Int) -> Unit,
 ) {
-    RememberCard(modifier = Modifier.clickable {
-        onSetSelected.invoke(set.id)
-    }) {
-        Text(
-            modifier = Modifier
-                .padding(top = 16.dp)
-                .padding(horizontal = 16.dp),
-            text = set.name,
-            fontSize = MaterialTheme.typography.headlineSmall.fontSize,
-            color = Color.White
+    RememberCard(modifier = modifier
+        .clickable {
+            onSetSelected.invoke(set.id)
+        }) {
+        Icon(
+            imageVector = Icons.Filled.Delete, contentDescription = "Delete icon", modifier = Modifier
+                .align(Alignment.TopEnd)
+                .padding(top = 16.dp, end = 16.dp)
+                .clickable {
+                    onSetDeleted.invoke(set.id)
+                }
         )
-
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp)
-                .padding(top = 32.dp)
-                .clip(RoundedCornerShape(14.dp))
-                .background(MaterialTheme.colorScheme.secondaryContainer)
-        ) {
-
+        Column {
             Text(
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                text = "${set.cards.size} words"
+                modifier = Modifier
+                    .padding(top = 16.dp)
+                    .padding(horizontal = 16.dp),
+                text = set.name,
+                fontSize = MaterialTheme.typography.headlineSmall.fontSize,
+                color = Color.White
             )
 
-            Icon(
+            Box(
                 modifier = Modifier
-                    .align(Alignment.CenterEnd)
-                    .padding(end = 16.dp),
-                imageVector = Icons.Filled.ArrowForward, contentDescription = ""
-            )
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp)
+                    .padding(top = 32.dp)
+                    .clip(RoundedCornerShape(14.dp))
+                    .background(MaterialTheme.colorScheme.secondaryContainer)
+            ) {
+                Text(
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                    text = "${set.cards.size} words"
+                )
+
+                Icon(
+                    modifier = Modifier
+                        .align(Alignment.CenterEnd)
+                        .padding(end = 16.dp),
+                    imageVector = Icons.Filled.ArrowForward, contentDescription = ""
+                )
+            }
         }
     }
 }
 
 @Preview
 @Composable
+fun SetsScreen() {
+    RemembermeTheme {
+        SetsScreen(state = SetsUiState.Success(
+            listOf(
+                CardSet(1, "Daily Conversation", listOf()),
+                CardSet(1, "Daily Conversation", listOf())
+            )
+        ), {}, {}) {
+        }
+
+    }
+}
+
+@Preview
+@Composable
 fun SetPreview() {
-    Set(CardSet(1, "Daily Conversation", listOf()), onSetSelected = { _ -> })
+    Set(CardSet(1, "Daily Conversation", listOf()), onSetSelected = { _ -> }, onSetDeleted = {})
 }

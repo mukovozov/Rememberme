@@ -3,6 +3,8 @@ package com.remember.rememberme.ui.components
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
@@ -36,9 +38,9 @@ fun RememberCard(
     height: Dp = 150.dp,
     cornerRadius: Dp = 18.dp,
     backgroundColor: Color = MaterialTheme.colorScheme.primary,
-    content: @Composable ColumnScope.() -> Unit
+    content: @Composable BoxScope.() -> Unit
 ) {
-    Column(
+    Box(
         modifier = modifier
             .height(height)
             .fillMaxWidth()

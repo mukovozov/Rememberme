@@ -1,6 +1,7 @@
 package com.remember.rememberme.feature.card.data.database.dao
 
 import androidx.room.Dao
+import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.Transaction
@@ -22,4 +23,7 @@ interface SetDao : BaseDao<SetEntity> {
     @Transaction
     @Query("SELECT * FROM SetEntity WHERE setId=:setId")
     fun getSedWithCardsById(setId: Int): Flow<SetWithCards?>
+
+    @Query("DELETE FROM SetEntity WHERE setId=:setId")
+    suspend fun deleteById(setId: Int)
 }

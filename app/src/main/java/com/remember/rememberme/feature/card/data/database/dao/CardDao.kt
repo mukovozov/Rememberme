@@ -15,4 +15,7 @@ interface CardDao : BaseDao<CardEntity> {
 
     @Query("SELECT * FROM CardEntity WHERE card_setId=:setId")
     fun getCardsForSet(setId: Int): Flow<List<CardEntity>>
+
+    @Query("DELETE FROM CardEntity WHERE card_setId=:setId")
+    suspend fun deleteAllInsideSet(setId: Int)
 }
